@@ -44,8 +44,6 @@ public abstract class Pessoa implements Serializable{
 
 	public Pessoa() {
 		super();
-
-		// Toda a pessoa criada terá o perfil Cliente
 		addPerfil(Perfil.CLIENTE);
 	}
 
