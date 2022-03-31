@@ -4,8 +4,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentConversionNotSupportedException;
 
 import com.projeto.helpdesk.service.exceptions.DataIntegrityViolationException;
 import com.projeto.helpdesk.service.exceptions.ObjectnotFoundException;
@@ -23,7 +26,7 @@ public class ResourceExceptionHandler {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
 
 	}
-	
+
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	public ResponseEntity<StandardError> dataIntegrityViolationException(DataIntegrityViolationException ex,
 			HttpServletRequest request) {
@@ -32,6 +35,21 @@ public class ResourceExceptionHandler {
 				"Violação de dados", ex.getMessage(), request.getRequestURI());
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+
+	}
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<StandardError> validationErrors(MethodArgumentNotValidException ex,
+			HttpServletRequest request) {
+
+		ValidationError errors = new ValidationError(System.currentTimeMillis(), HttpStatus.BAD_REQUEST.value(),
+				"Validation error", "Erro na validação dos campos", request.getRequestURI());
+
+		for (FieldError x : ex.getBindingResult().getFieldErrors()) {
+			errors.addErrors(x.getField(), x.getDefaultMessage());
+		}
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
 
 	}
 
